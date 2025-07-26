@@ -1,6 +1,7 @@
 import { Image, TouchableOpacity, StyleSheet, Text, Alert, ScrollView, TextInput, View, Linking } from 'react-native'
 import { useState, useEffect } from 'react'
 import { useUser } from '../../hooks/useUser'
+import { usePayments } from '../../hooks/usePayments'
 import * as ImagePicker from 'expo-image-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import defaultProfilePic from '../../assets/img/avatar_placeholder.png'
@@ -12,6 +13,7 @@ import ThemedButton from '../../components/ThemedButton'
 
 const Profile = () => {
   const { logout, user } = useUser()
+  const { getEarnings, getSpending, transactions } = usePayments()
   const [profilePic, setProfilePic] = useState(null)
   const [hasPermission, setHasPermission] = useState(null)
   const [description, setDescription] = useState('')
@@ -187,6 +189,25 @@ const Profile = () => {
         <ThemedText title={true} style={styles.heading}>
           {user.email}
         </ThemedText>
+        
+        {/* Earnings Summary */}
+        <View style={styles.earningsSection}>
+          <ThemedText style={styles.sectionTitle}>Earnings Summary</ThemedText>
+          <View style={styles.earningsGrid}>
+            <View style={styles.earningCard}>
+              <ThemedText style={styles.earningAmount}>S${getEarnings()}</ThemedText>
+              <ThemedText style={styles.earningLabel}>Total Earned</ThemedText>
+            </View>
+            <View style={styles.earningCard}>
+              <ThemedText style={styles.earningAmount}>S${getSpending()}</ThemedText>
+              <ThemedText style={styles.earningLabel}>Total Spent</ThemedText>
+            </View>
+          </View>
+          <ThemedText style={styles.transactionCount}>
+            {transactions.length} total transactions
+          </ThemedText>
+        </View>
+        
         <Spacer />
 
         {/* Description Section */}
@@ -483,5 +504,43 @@ const styles = StyleSheet.create({
     color: '#f2f2f2',
     fontSize: 14,
     fontWeight: '500',
+  },
+  earningsSection: {
+    width: '100%',
+    marginVertical: 20,
+    padding: 16,
+    backgroundColor: 'rgba(127, 90, 240, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(127, 90, 240, 0.3)',
+  },
+  earningsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  earningCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 12,
+    marginHorizontal: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+  },
+  earningAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#7F5AF0',
+    marginBottom: 4,
+  },
+  earningLabel: {
+    fontSize: 12,
+    opacity: 0.8,
+    textAlign: 'center',
+  },
+  transactionCount: {
+    fontSize: 12,
+    opacity: 0.6,
+    textAlign: 'center',
   },
 })

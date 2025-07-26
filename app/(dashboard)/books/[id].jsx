@@ -13,6 +13,7 @@ import ThemedView from "../../../components/ThemedView"
 import Spacer from "../../../components/Spacer"
 import ThemedCard from "../../../components/ThemedCard"
 import ThemedLoader from "../../../components/ThemedLoader"
+import PaymentButton from "../../../components/PaymentButton"
 
 const BookDetails = () => {
   const [service, setService] = useState(null)
@@ -358,6 +359,23 @@ const BookDetails = () => {
             </>
           ) : (
             <>
+              {/* Payment Button */}
+              <PaymentButton 
+                service={service}
+                onPaymentSuccess={(result) => {
+                  console.log('Payment successful:', result)
+                  Alert.alert(
+                    'Payment Complete!',
+                    'Your payment has been processed. The service provider will be notified.',
+                    [{ text: 'OK' }]
+                  )
+                }}
+                onPaymentError={(error) => {
+                  console.error('Payment error:', error)
+                }}
+                style={styles.paymentSection}
+              />
+              
               {/* Show contact button only if service has userId */}
               {service.userId ? (
                 <ThemedButton 
@@ -561,6 +579,10 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     opacity: 0.7,
     textAlign: 'center',
+  },
+  paymentSection: {
+    width: '100%',
+    marginBottom: 16,
   },
   contactButton: {
     width: '100%',
