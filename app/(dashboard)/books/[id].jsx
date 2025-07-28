@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useBooks } from "../../../hooks/useBooks"
 import { useUser } from "../../../hooks/useUser"
 import { useMessaging } from "../../../hooks/useMessaging"
+import { useReviews } from "../../../hooks/useReviews"
 import { Colors } from "../../../constants/Colors"
 import { Ionicons } from "@expo/vector-icons"
 
@@ -13,16 +14,26 @@ import ThemedView from "../../../components/ThemedView"
 import Spacer from "../../../components/Spacer"
 import ThemedCard from "../../../components/ThemedCard"
 import ThemedLoader from "../../../components/ThemedLoader"
+import ReviewSummary from "../../../components/reviews/ReviewSummary"
+import ReviewCard from "../../../components/reviews/ReviewCard"
+import CreateReviewModal from "../../../components/reviews/CreateReviewModal"
 
 const BookDetails = () => {
   const [service, setService] = useState(null)
   const [loading, setLoading] = useState(true)
   const [contacting, setContacting] = useState(false)
+  const [showReviewModal, setShowReviewModal] = useState(false)
 
   const { id } = useLocalSearchParams()
   const { fetchBookById, deleteBook } = useBooks()
   const { user } = useUser()
   const { createOrGetConversation } = useMessaging()
+  const { 
+    reviews, 
+    fetchServiceReviews, 
+    canUserReview, 
+    getReviewStats 
+  } = useReviews()
   const router = useRouter()
 
   const handleDelete = async () => {
@@ -143,6 +154,10 @@ const BookDetails = () => {
 
   // Check if current user owns this service
   const isOwner = user && service && service.userId === user.$id
+  
+  const serviceReviews = reviews[id] || []
+  const canReview = canUserReview(id, service?.userId)
+  const reviewStats = getReviewStats(id)
 
   useEffect(() => {
     async function loadService() {
@@ -158,6 +173,9 @@ const BookDetails = () => {
           hasUserId: !!serviceData.userId
         })
         setService(serviceData)
+        
+        // Fetch reviews for this service
+        await fetchServiceReviews(id)
       } catch (error) {
         console.error('Error loading service:', error)
         setService(null)
@@ -337,6 +355,36 @@ const BookDetails = () => {
           )}
         </ThemedCard>
 
+        {/* Reviews Section */}
+        <ReviewSummary serviceId={id} />
+        
+        {serviceReviews.length > 0 && (
+          <ThemedCard style={styles.reviewsCard}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="star-outline" size={20} color="#7F5AF0" />
+              <ThemedText style={styles.sectionTitle}>Customer Reviews</ThemedText>
+            </View>
+            <Spacer height={12} />
+            
+            {serviceReviews.slice(0, 3).map((review) => (
+              <ReviewCard 
+                key={review.$id} 
+                review={review}
+                showServiceTitle={false}
+              />
+            ))}
+            
+            {serviceReviews.length > 3 && (
+              <Pressable style={styles.viewAllReviews}>
+                <ThemedText style={styles.viewAllText}>
+                  View all {serviceReviews.length} reviews
+                </ThemedText>
+                <Ionicons name="chevron-forward" size={16} color="#7F5AF0" />
+              </Pressable>
+            )}
+          </ThemedCard>
+        )}
+
         {/* Action Buttons */}
         <View style={styles.actionSection}>
           {isOwner ? (
@@ -358,6 +406,19 @@ const BookDetails = () => {
             </>
           ) : (
             <>
+              {/* Review Button */}
+              {canReview && (
+                <ThemedButton 
+                  style={styles.reviewButton}
+                  onPress={() => setShowReviewModal(true)}
+                >
+                  <View style={styles.buttonContent}>
+                    <Ionicons name="star-outline" size={18} color="#fff" />
+                    <Text style={styles.buttonText}>Write a Review</Text>
+                  </View>
+                </ThemedButton>
+              )}
+              
               {/* Show contact button only if service has userId */}
               {service.userId ? (
                 <ThemedButton 
@@ -395,6 +456,15 @@ const BookDetails = () => {
 
         <Spacer height={40} />
       </ScrollView>
+      
+      {/* Review Modal */}
+      <CreateReviewModal
+        visible={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        serviceId={id}
+        serviceProviderId={service?.userId}
+        serviceTitle={service?.title}
+      />
     </ThemedView>
   )
 }
@@ -665,5 +735,35 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  reviewsCard: {
+    marginBottom: 16,
+    padding: 20,
+  },
+  viewAllReviews: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#7F5AF010',
+  },
+  viewAllText: {
+    color: '#7F5AF0',
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 4,
+  },
+  reviewButton: {
+    width: '100%',
+    marginBottom: 12,
+    paddingVertical: 16,
+    backgroundColor: '#FFD700',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 8,
   },
 })

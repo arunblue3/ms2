@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar'
 import { UserProvider } from '../contexts/UserContext'
 import { BooksProvider } from '../contexts/BooksContext'
 import { MessagingProvider } from '../contexts/MessagingContext'
+import { ReviewsProvider } from '../contexts/ReviewsContext'
 
 const RootLayout = () => {
     const colorScheme = useColorScheme();
@@ -15,15 +16,17 @@ const RootLayout = () => {
     <UserProvider>
       <BooksProvider>
         <MessagingProvider>
-          <StatusBar value= "auto"/>
-          <Stack screenOptions={{
-              headerStyle: {backgroundColor: theme.navBackground},
-              headerTintColor: theme.title,
-          }}>
-            <Stack.Screen name="(auth)" options={{headerShown: false}}/>
-            <Stack.Screen name="(dashboard)" options={{headerShown: false}}/>
-            <Stack.Screen name="index" options={{title: 'Home', headerShown: false}}/>
-          </Stack>
+          <ReviewsProvider>
+            <StatusBar value= "auto"/>
+            <Stack screenOptions={{
+                headerStyle: {backgroundColor: theme.navBackground},
+                headerTintColor: theme.title,
+            }}>
+              <Stack.Screen name="(auth)" options={{headerShown: false}}/>
+              <Stack.Screen name="(dashboard)" options={{headerShown: false}}/>
+              <Stack.Screen name="index" options={{title: 'Home', headerShown: false}}/>
+            </Stack>
+          </ReviewsProvider>
         </MessagingProvider>
       </BooksProvider>
     </UserProvider>
