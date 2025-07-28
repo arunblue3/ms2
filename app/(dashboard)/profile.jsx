@@ -1,17 +1,22 @@
 import { Image, TouchableOpacity, StyleSheet, Text, Alert, ScrollView, TextInput, View, Linking } from 'react-native'
 import { useState, useEffect } from 'react'
 import { useUser } from '../../hooks/useUser'
+import { useReviews } from '../../hooks/useReviews'
 import * as ImagePicker from 'expo-image-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import defaultProfilePic from '../../assets/img/avatar_placeholder.png'
+import { Ionicons } from '@expo/vector-icons'
 
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
 import ThemedView from "../../components/ThemedView"
 import ThemedButton from '../../components/ThemedButton'
+import ThemedCard from '../../components/ThemedCard'
+import ReviewCard from '../../components/reviews/ReviewCard'
 
 const Profile = () => {
   const { logout, user } = useUser()
+  const { receivedReviews, getReviewStats } = useReviews()
   const [profilePic, setProfilePic] = useState(null)
   const [hasPermission, setHasPermission] = useState(null)
   const [description, setDescription] = useState('')
@@ -20,6 +25,7 @@ const Profile = () => {
   const [newProjectUrl, setNewProjectUrl] = useState('')
   const [portfolioPhotos, setPortfolioPhotos] = useState([])
   const [isEditingDescription, setIsEditingDescription] = useState(false)
+  const [showAllReviews, setShowAllReviews] = useState(false)
   
   useEffect(() => {
     const loadProfileData = async () => {
@@ -169,6 +175,16 @@ const Profile = () => {
     })
   }
 
+  // Calculate overall rating from all received reviews
+  const calculateOverallRating = () => {
+    if (receivedReviews.length === 0) return 0
+    const totalRating = receivedReviews.reduce((sum, review) => sum + review.rating, 0)
+    return (totalRating / receivedReviews.length).toFixed(1)
+  }
+
+  const overallRating = calculateOverallRating()
+  const displayedReviews = showAllReviews ? receivedReviews : receivedReviews.slice(0, 3)
+
   return (
     <ScrollView style={styles.scrollContainer}>
       <ThemedView style={styles.container}>
@@ -187,6 +203,30 @@ const Profile = () => {
         <ThemedText title={true} style={styles.heading}>
           {user.email}
         </ThemedText>
+        
+        {/* Rating Summary */}
+        {receivedReviews.length > 0 && (
+          <View style={styles.ratingSection}>
+            <View style={styles.ratingDisplay}>
+              <ThemedText style={styles.overallRating}>{overallRating}</ThemedText>
+              <View style={styles.starsContainer}>
+                {Array.from({ length: 5 }, (_, index) => (
+                  <Ionicons
+                    key={index}
+                    name={index < Math.floor(overallRating) ? 'star' : index < overallRating ? 'star-half' : 'star-outline'}
+                    size={16}
+                    color={index < overallRating ? '#FFD700' : '#ccc'}
+                    style={{ marginRight: 2 }}
+                  />
+                ))}
+              </View>
+              <ThemedText style={styles.reviewCount}>
+                {receivedReviews.length} review{receivedReviews.length !== 1 ? 's' : ''}
+              </ThemedText>
+            </View>
+          </View>
+        )}
+        
         <Spacer />
 
         {/* Description Section */}
@@ -300,6 +340,33 @@ const Profile = () => {
             ))}
           </View>
         </View>
+        <Spacer />
+
+        {/* Reviews Section */}
+        {receivedReviews.length > 0 && (
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Recent Reviews</ThemedText>
+            
+            {displayedReviews.map((review) => (
+              <ReviewCard 
+                key={review.$id} 
+                review={review}
+                showServiceTitle={true}
+              />
+            ))}
+            
+            {receivedReviews.length > 3 && (
+              <ThemedButton 
+                onPress={() => setShowAllReviews(!showAllReviews)} 
+                style={[styles.smallButton, styles.viewMoreButton]}
+              >
+                <Text style={styles.buttonText}>
+                  {showAllReviews ? 'Show Less' : `View All ${receivedReviews.length} Reviews`}
+                </Text>
+              </ThemedButton>
+            )}
+          </View>
+        )}
         <Spacer />
 
         <ThemedText>Time to hunt...</ThemedText>
@@ -483,5 +550,38 @@ const styles = StyleSheet.create({
     color: '#f2f2f2',
     fontSize: 14,
     fontWeight: '500',
+  },
+  ratingSection: {
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  ratingDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  overallRating: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginRight: 8,
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    marginRight: 8,
+  },
+  reviewCount: {
+    fontSize: 12,
+    opacity: 0.8,
+  },
+  viewMoreButton: {
+    backgroundColor: '#FFD700',
+    alignSelf: 'center',
+    marginTop: 10,
   },
 })
