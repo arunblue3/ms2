@@ -7,7 +7,7 @@ import ThemedCard from '../ThemedCard'
 
 const ReviewSummary = ({ serviceId }) => {
   const { getReviewStats } = useReviews()
-  const stats = getReviewStats(serviceId)
+  const stats = getReviewStats(serviceId) || { totalReviews: 0, averageRating: 0, ratingDistribution: {} }
 
   const renderStars = (rating, size = 16) => {
     return Array.from({ length: 5 }, (_, index) => (

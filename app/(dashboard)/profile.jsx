@@ -177,13 +177,13 @@ const Profile = () => {
 
   // Calculate overall rating from all received reviews
   const calculateOverallRating = () => {
-    if (receivedReviews.length === 0) return 0
+    if (!receivedReviews || receivedReviews.length === 0) return 0
     const totalRating = receivedReviews.reduce((sum, review) => sum + review.rating, 0)
     return (totalRating / receivedReviews.length).toFixed(1)
   }
 
   const overallRating = calculateOverallRating()
-  const displayedReviews = showAllReviews ? receivedReviews : receivedReviews.slice(0, 3)
+  const displayedReviews = showAllReviews ? (receivedReviews || []) : (receivedReviews || []).slice(0, 3)
 
   return (
     <ScrollView style={styles.scrollContainer}>
@@ -205,7 +205,7 @@ const Profile = () => {
         </ThemedText>
         
         {/* Rating Summary */}
-        {receivedReviews.length > 0 && (
+        {receivedReviews && receivedReviews.length > 0 && (
           <View style={styles.ratingSection}>
             <View style={styles.ratingDisplay}>
               <ThemedText style={styles.overallRating}>{overallRating}</ThemedText>
@@ -221,7 +221,7 @@ const Profile = () => {
                 ))}
               </View>
               <ThemedText style={styles.reviewCount}>
-                {receivedReviews.length} review{receivedReviews.length !== 1 ? 's' : ''}
+                {receivedReviews?.length || 0} review{(receivedReviews?.length || 0) !== 1 ? 's' : ''}
               </ThemedText>
             </View>
           </View>
@@ -343,7 +343,7 @@ const Profile = () => {
         <Spacer />
 
         {/* Reviews Section */}
-        {receivedReviews.length > 0 && (
+        {receivedReviews && receivedReviews.length > 0 && (
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>Recent Reviews</ThemedText>
             
@@ -355,13 +355,13 @@ const Profile = () => {
               />
             ))}
             
-            {receivedReviews.length > 3 && (
+            {receivedReviews && receivedReviews.length > 3 && (
               <ThemedButton 
                 onPress={() => setShowAllReviews(!showAllReviews)} 
                 style={[styles.smallButton, styles.viewMoreButton]}
               >
                 <Text style={styles.buttonText}>
-                  {showAllReviews ? 'Show Less' : `View All ${receivedReviews.length} Reviews`}
+                  {showAllReviews ? 'Show Less' : `View All ${receivedReviews?.length || 0} Reviews`}
                 </Text>
               </ThemedButton>
             )}

@@ -39,6 +39,11 @@ export function ReviewsProvider({ children }) {
       console.log('Database ID:', DATABASE_CONFIG.DATABASE_ID)
       console.log('Reviews Collection ID:', DATABASE_CONFIG.REVIEWS_COLLECTION_ID)
       
+      if (!DATABASE_CONFIG.REVIEWS_COLLECTION_ID) {
+        console.log('⚠️ Reviews collection ID not configured')
+        return false
+      }
+      
       if (!user) {
         console.log('⚠️ No user authenticated for reviews test')
         return false
@@ -68,6 +73,11 @@ export function ReviewsProvider({ children }) {
   // Fetch reviews for a specific service
   async function fetchServiceReviews(serviceId) {
     try {
+      if (!DATABASE_CONFIG.REVIEWS_COLLECTION_ID) {
+        console.log('⚠️ Reviews collection not configured, skipping fetch')
+        return []
+      }
+      
       if (!user) {
         console.log('⚠️ No user authenticated for fetching reviews')
         return []
@@ -103,6 +113,12 @@ export function ReviewsProvider({ children }) {
   // Fetch reviews written by current user
   async function fetchUserReviews() {
     try {
+      if (!DATABASE_CONFIG.REVIEWS_COLLECTION_ID) {
+        console.log('⚠️ Reviews collection not configured, skipping fetch')
+        setUserReviews([])
+        return []
+      }
+      
       if (!user) {
         console.log('⚠️ No user authenticated for fetching user reviews')
         setUserReviews([])
@@ -134,6 +150,12 @@ export function ReviewsProvider({ children }) {
   // Fetch reviews received by current user (for their services)
   async function fetchReceivedReviews() {
     try {
+      if (!DATABASE_CONFIG.REVIEWS_COLLECTION_ID) {
+        console.log('⚠️ Reviews collection not configured, skipping fetch')
+        setReceivedReviews([])
+        return []
+      }
+      
       if (!user) {
         console.log('⚠️ No user authenticated for fetching received reviews')
         setReceivedReviews([])
@@ -165,6 +187,10 @@ export function ReviewsProvider({ children }) {
   // Create a new review
   async function createReview(reviewData) {
     try {
+      if (!DATABASE_CONFIG.REVIEWS_COLLECTION_ID) {
+        throw new Error('Reviews system is not configured. Please contact support.')
+      }
+      
       if (!user) {
         throw new Error('User must be authenticated to create a review')
       }
@@ -229,6 +255,10 @@ export function ReviewsProvider({ children }) {
   // Update an existing review
   async function updateReview(reviewId, updateData) {
     try {
+      if (!DATABASE_CONFIG.REVIEWS_COLLECTION_ID) {
+        throw new Error('Reviews system is not configured. Please contact support.')
+      }
+      
       if (!user) {
         throw new Error('User must be authenticated to update a review')
       }
@@ -274,6 +304,10 @@ export function ReviewsProvider({ children }) {
   // Delete a review
   async function deleteReview(reviewId, serviceId) {
     try {
+      if (!DATABASE_CONFIG.REVIEWS_COLLECTION_ID) {
+        throw new Error('Reviews system is not configured. Please contact support.')
+      }
+      
       if (!user) {
         throw new Error('User must be authenticated to delete a review')
       }
@@ -347,6 +381,11 @@ export function ReviewsProvider({ children }) {
 
     if (user) {
       console.log('👤 Setting up reviews for user:', user.$id)
+      
+      if (!DATABASE_CONFIG.REVIEWS_COLLECTION_ID) {
+        console.log('⚠️ Reviews collection not configured, skipping setup')
+        return
+      }
       
       // Wait for user session to be fully established
       setTimeout(() => {

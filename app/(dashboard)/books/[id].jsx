@@ -32,7 +32,8 @@ const BookDetails = () => {
     reviews, 
     fetchServiceReviews, 
     canUserReview, 
-    getReviewStats 
+    getReviewStats,
+    testReviewsConnection
   } = useReviews()
   const router = useRouter()
 
@@ -156,8 +157,8 @@ const BookDetails = () => {
   const isOwner = user && service && service.userId === user.$id
   
   const serviceReviews = reviews[id] || []
-  const canReview = canUserReview(id, service?.userId)
-  const reviewStats = getReviewStats(id)
+  const canReview = service ? canUserReview(id, service?.userId) : false
+  const reviewStats = getReviewStats(id) || { totalReviews: 0, averageRating: 0, ratingDistribution: {} }
 
   useEffect(() => {
     async function loadService() {
@@ -175,7 +176,12 @@ const BookDetails = () => {
         setService(serviceData)
         
         // Fetch reviews for this service
-        await fetchServiceReviews(id)
+        const reviewsAvailable = await testReviewsConnection()
+        if (reviewsAvailable) {
+          await fetchServiceReviews(id)
+        } else {
+          console.log('⚠️ Reviews system not available, skipping review fetch')
+        }
       } catch (error) {
         console.error('Error loading service:', error)
         setService(null)
